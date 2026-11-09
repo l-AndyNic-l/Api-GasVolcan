@@ -1,0 +1,41 @@
+// Ventas:
+{
+  "subtotal": 10000,
+  "iva": 1900,
+  "descuento": 500,
+  "total": 11400,
+  "fechaVenta": "2024-05-20T14:30:00"
+}
+
+
+// Usuarios:
+{
+  "rut": "98765432",
+  "dv_rut": "K",
+  "nombre": "María",
+  "apellido": "González",
+  "telefono": "912345678",
+  "direccion": "Calle Falsa 123, Depto 4B",
+  "correo": "maria.gonzalez@example.com",
+  "clave": "Segura2024",
+  "tipo_compra": "Presencial",
+  "tipo_cliente": "Estándar",
+  "frecuencia_compra": "Semanal",
+  "local_comercial": "Sucursal Providencia",
+  "estado_usuario": "Activo"
+}
+
+
+// Productos:
+{
+  "sku": "ABS-001",
+  "categoria": "Gas",
+  "nombre": "Cilindro Abastible 5kg",
+  "descripcion": "Cilindro de gas de 5kg de la marca Abastible.",
+  "precio": 11000,
+  "marca": "Abastible",
+  "stock": 10,
+  "despacho": "Domicilio",
+  "formato": "Cilindro individual",
+  "informacion_adicional": "Envase retornable. No incluye manguera ni regulador."
+}

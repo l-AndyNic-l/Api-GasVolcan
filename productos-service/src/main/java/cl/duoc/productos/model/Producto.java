@@ -31,6 +31,10 @@ public class Producto {
     @Size(min = 3, message = "La marca debe tener al menos 3 caracteres.")
     private String marca;
 
+    @NotBlank(message = "La categoria es obligatoria.")
+    @Size(min = 3, message = "La categoria debe tener al menos 3 caracteres.")
+    private String categoria;
+
     @Min(value = 0, message = "El precio no puede ser negativo.")
     private int precio;
 
