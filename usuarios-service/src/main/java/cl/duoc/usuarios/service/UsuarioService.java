@@ -35,6 +35,7 @@ public class UsuarioService {
             return null;
         }
 
+        usuario.setId(usuarioActualizado.getId());
         return usuarioRepository.save(usuario);
     }
 }

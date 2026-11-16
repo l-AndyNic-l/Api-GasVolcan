@@ -35,6 +35,7 @@ public class VentaService {
             return null;
         }
 
+        venta.setId(ventaActualizada.getId());
         return ventaRepository.save(venta);
     }
 }

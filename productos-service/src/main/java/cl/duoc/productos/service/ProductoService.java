@@ -35,6 +35,7 @@ public class ProductoService {
             return null;
         }
 
+        producto.setId(productoActualizado.getId());
         return productoRepository.save(producto);
     }
 }
