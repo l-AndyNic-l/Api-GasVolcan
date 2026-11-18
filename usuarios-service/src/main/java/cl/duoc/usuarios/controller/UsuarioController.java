@@ -1,6 +1,8 @@
 package cl.duoc.usuarios.controller;
 
+import cl.duoc.usuarios.dto.LoginRequest;
 import cl.duoc.usuarios.model.Usuario;
+import cl.duoc.usuarios.security.JwtUtil;
 import cl.duoc.usuarios.service.UsuarioService;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -8,6 +10,7 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.CollectionModel;
@@ -16,6 +19,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -28,7 +32,11 @@ public class UsuarioController {
     @Autowired
     private UsuarioService usuarioService;
 
+    @Autowired
+    private JwtUtil jwtUtil;
+
     @GetMapping
+    @SecurityRequirement(name = "BearerAuth")
     @Operation(
             summary = "Obtener todos los usuarios",
             description = "Obtiene el listado completo de los usuarios"
@@ -41,7 +49,12 @@ public class UsuarioController {
                             mediaType = "application/json",
                             schema = @Schema(type = "array", implementation = Usuario.class)
                     )
-            )
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "No autorizado. Debes enviar un token JWT válido en el header Authorization",
+                    content = @Content
+            ),
     })
     public CollectionModel<EntityModel<Usuario>> listarUsuarios() {
         List<Usuario> usuarios = usuarioService.getAll();
@@ -58,6 +71,7 @@ public class UsuarioController {
     }
 
     @GetMapping("{id}")
+    @SecurityRequirement(name = "BearerAuth")
     @Operation(
             summary = "Obtener usuario",
             description = "Obtiene los detalles del usuario por ID"
@@ -95,7 +109,12 @@ public class UsuarioController {
                     responseCode = "404",
                     description = "Usuario no encontrado",
                     content = @Content
-            )
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "No autorizado. Debes enviar un token JWT válido en el header Authorization",
+                    content = @Content
+            ),
     })
     public EntityModel<Usuario> obtenerUsuario(
             @Parameter(description = "ID del usuario a buscar", example = "1", required = true)
@@ -151,7 +170,12 @@ public class UsuarioController {
                     responseCode = "400",
                     description = "Datos de entrada inválidos",
                     content = @Content
-            )
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "No autorizado. Debes enviar un token JWT válido en el header Authorization",
+                    content = @Content
+            ),
     })
     public ResponseEntity<?> registrarUsuario(
             @Valid
@@ -194,6 +218,7 @@ public class UsuarioController {
     }
 
     @DeleteMapping("/{id}")
+    @SecurityRequirement(name = "BearerAuth")
     @Operation(
             summary = "Eliminar usuario",
             description = "Elimina un usuario del sistema por su ID."
@@ -219,6 +244,7 @@ public class UsuarioController {
     }
 
     @PutMapping("/{id}")
+    @SecurityRequirement(name = "BearerAuth")
     @Operation(
             summary = "Actualizar usuario",
             description = "Actualiza los datos de un usuario existente identificado por su ID."
@@ -261,7 +287,12 @@ public class UsuarioController {
                     responseCode = "404",
                     description = "Usuario no encontrado",
                     content = @Content
-            )
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "No autorizado. Debes enviar un token JWT válido en el header Authorization",
+                    content = @Content
+            ),
     })
     public ResponseEntity<?> actualizarUsuario(
             @Parameter(description = "ID del usuario a actualizar", example = "1", required = true)
@@ -302,5 +333,72 @@ public class UsuarioController {
         }
 
         return ResponseEntity.ok(usuarioActualizado);
+    }
+
+    @PostMapping("/login")
+    @Operation(
+            summary = "Iniciar sesión",
+            description = "Valida las credenciales del usuario y devuelve un token JWT para autenticar las siguientes peticiones."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Login exitoso. Devuelve el token JWT.",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(
+                                    name = "Login exitoso",
+                                    value = """
+                                    {
+                                        "token": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtYXJpYS5nb256YWxlekBleGFtcGxlLmNvbSIsInVzZXJJZCI6MSwidGlwb0NsaWVudGUiOiJFc3TDoW5kYXIiLCJpYXQiOjE3MzE4MDAwMDAsImV4cCI6MTczMTgwMzYwMH0.abc123def456ghi789jkl012mno345pqr678stu901vwx234yzA"
+                                    }
+                                """
+                            )
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Credenciales inválidas. El correo no existe o la contraseña es incorrecta.",
+                    content = @Content(
+                            mediaType = "text/plain",
+                            examples = @ExampleObject(
+                                    name = "Credenciales inválidas",
+                                    value = "Credenciales inválidas"
+                            )
+                    )
+            )
+    })
+    public ResponseEntity<?> login(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "Credenciales del usuario (correo y clave en texto plano)",
+                    required = true,
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(
+                                    name = "Ejemplo de login",
+                                    value = """
+                                    {
+                                      "correo": "maria.gonzalez@example.com",
+                                      "clave": "Segura2024"
+                                    }
+                                """
+                            )
+                    )
+            )
+            @RequestBody LoginRequest request
+    ) {
+        Usuario usuario = usuarioService.login(request.correo(), request.clave());
+
+        if (usuario == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Credenciales inválidas");
+        }
+
+        String token = jwtUtil.generateToken(
+                usuario.getId(),
+                usuario.getCorreo(),
+                usuario.getTipo_cliente()
+        );
+
+        return ResponseEntity.ok(Map.of("token", token));
     }
 }
